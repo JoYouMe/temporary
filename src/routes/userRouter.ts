@@ -3,7 +3,6 @@ import Router from 'koa-router';
 import Users from '../controllers/auth/users';
 import { LoginRequestBody } from '../interfaces/IUser';
 import jwt from 'jsonwebtoken';
-import cookie from 'cookie';
 
 const app = new Koa();
 const router = new Router();
@@ -19,7 +18,6 @@ router.post('/login', async (ctx, next) => {
             const payload = { username };
             const token = jwt.sign(payload, secretKey, { expiresIn: '1h' });
             
-            // 쿠키에 토큰 설정
             ctx.cookies.set('jwtToken', token, { httpOnly: true, expires: new Date(Date.now() + 1 * 60 * 60 * 1000) });
 
             ctx.body = { success: true, message: `User ${username} logged in successfully.`, token };
@@ -40,8 +38,6 @@ router.post('/register', async (ctx, next) => {
         if (result) {
             const payload = { username };
             const token = jwt.sign(payload, secretKey, { expiresIn: '1h' });
-
-            // 쿠키에 토큰 설정
             ctx.cookies.set('jwtToken', token, { httpOnly: true, expires: new Date(Date.now() + 1 * 60 * 60 * 1000) });
 
             ctx.body = { success: true, message: `User ${username} registered successfully.`, token };

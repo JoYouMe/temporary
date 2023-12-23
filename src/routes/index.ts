@@ -1,14 +1,13 @@
 import Koa from 'koa';
 import Router from 'koa-router';
-import test from './test'
+import testRouter from './test'
 import userRouter from './userRouter'
 
 const app = new Koa();
 const router = new Router();
 
-router.get('/test', test.routes())
-router.get('/', userRouter.routes())
-router.post('/login', userRouter.routes())
+router.use('/test', testRouter.routes());
+router.use('/user', userRouter.routes())
 
 app.use(router.routes()).use(router.allowedMethods());
 
