@@ -2,25 +2,19 @@ import Koa from 'koa';
 import Router from 'koa-router';
 import Users from '../controllers/auth/users';
 import { LoginRequestBody } from '../interfaces/IUser';
-import jwt from 'jsonwebtoken';
 
 const app = new Koa();
 const router = new Router();
 const users = new Users();
-const secretKey = 'secret_key';
 
 router.post('/login', async (ctx, next) => {
     const { username, password } = ctx.request.body as LoginRequestBody
 
     try {
         const result = await users.loginUser(username, password);
-        if (result) {
-            const payload = { username };
-            const token = jwt.sign(payload, secretKey, { expiresIn: '1h' });
-            
-            ctx.cookies.set('jwtToken', token, { httpOnly: true, expires: new Date(Date.now() + 1 * 60 * 60 * 1000) });
-
-            ctx.body = { success: true, message: `User ${username} logged in successfully.`, token };
+        if (result?.success) {            
+            ctx.cookies.set('jwtToken', result.token, { httpOnly: true, expires: new Date(Date.now() + 1 * 60 * 60 * 1000) });
+            ctx.body = { success: true, message: `User ${username} logged in successfully.` };
         }else{
             ctx.body = { success: false, message: `Login failed for user ${username}. Invalid credentials.` };
         }
@@ -35,17 +29,16 @@ router.post('/register', async (ctx, next) => {
 
     try {
         const result = await users.registerUser(username, password);
-        if (result) {
-            const payload = { username };
-            const token = jwt.sign(payload, secretKey, { expiresIn: '1h' });
-            ctx.cookies.set('jwtToken', token, { httpOnly: true, expires: new Date(Date.now() + 1 * 60 * 60 * 1000) });
 
-            ctx.body = { success: true, message: `User ${username} registered successfully.`, token };
-        }else{
+        if (result) {            
+            ctx.cookies.set('jwtToken', result.token, { httpOnly: true, expires: new Date(Date.now() + 1 * 60 * 60 * 1000) });
+
+            ctx.body = { success: true, message: `User ${username} registed in successfully.` };
+
+        } else {
             ctx.body = { success: false, message: `${username} already exists` };
         }
     } catch (error) {
-        console.error("Error during register user :", error);
         ctx.body = { success: false, message: `Error during register user ${username}.` };
     }
 });

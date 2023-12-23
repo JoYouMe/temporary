@@ -13,6 +13,7 @@
   "author": "yumi",
   "license": "ISC",
   "dependencies": {
+    "bcrypt": "^5.1.1",
     "dotenv": "^16.3.1",
     "jsonwebtoken": "^9.0.2",
     "koa": "^2.14.2",
@@ -26,6 +27,7 @@
     "typescript": "^5.2.2"
   },
   "devDependencies": {
+    "@types/bcrypt": "^5.0.2",
     "@types/cors": "^2.8.17",
     "@types/dotenv": "^8.2.0",
     "@types/jest": "^29.5.7",
