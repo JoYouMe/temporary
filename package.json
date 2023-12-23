@@ -1,5 +1,5 @@
 {
-  "name": "temporary",
+  "name": "bnb",
   "version": "1.0.0",
   "description": "",
   "main": "main.ts",
@@ -14,7 +14,10 @@
   "license": "ISC",
   "dependencies": {
     "dotenv": "^16.3.1",
-    "express": "^4.18.2",
+    "koa": "^2.14.2",
+    "koa-bodyparser": "^4.4.1",
+    "koa-router": "^12.0.1",
+    "koa-validator": "^0.6.4",
     "nodemon": "^3.0.1",
     "pg": "^8.11.3",
     "prettier": "^3.0.3",
@@ -22,8 +25,12 @@
     "typescript": "^5.2.2"
   },
   "devDependencies": {
-    "@types/express": "^4.17.21",
+    "@types/cors": "^2.8.17",
+    "@types/dotenv": "^8.2.0",
     "@types/jest": "^29.5.7",
+    "@types/koa": "^2.13.12",
+    "@types/koa-bodyparser": "^4.3.12",
+    "@types/koa-router": "^7.4.8",
     "@types/pg": "^8.10.9",
     "ts-node": "^10.9.1"
   }
