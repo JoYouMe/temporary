@@ -1,10 +1,9 @@
-import { database } from "../../database/config";
+import { database } from "../database/config";
 import { Pool, QueryResult } from "pg";
 import bcrypt from 'bcrypt';
 
-
 export default class UserService {
-    private static instance: UserService;
+    public static instance: UserService;
     private db: Pool;
     private constructor() {
         this.db = database();
