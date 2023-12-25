@@ -1,4 +1,5 @@
 import pg from "pg";
+
 export function database() {
     return new pg.Pool({
         database: 'postgres_db',
