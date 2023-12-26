@@ -1,73 +1,67 @@
 import { Context } from 'koa';
 import PostService from '../services/postService';
-import UserService from '../services/userService';
-
 export default class Post {
-  public readonly postService: PostService
-  public readonly userService: UserService
+  private static readonly postService: PostService = PostService.getInstance();
 
   constructor(){
-    this.postService = PostService.getInstance();
-    this.userService = UserService.getInstance();
   }
 
-   async createPost(ctx: Context) {
+  static async createPost(ctx: Context) {
     const { user_id, title, content } = ctx.request.body as any
 
     try {
-      const createdPost = await this.postService.createPost(user_id, title, content);
+      const createdPost = await Post.postService.createPost(user_id, title, content);
       ctx.body = { success: true, post: createdPost };
     } catch (error) {
       console.error('Error during create post:', error);
-      ctx.body = { success: false, message: 'Internal Server Error' };
+      ctx.body = { success: false, message: 'POST 작성 실패' };
     }
   }
 
-   async getPostList(ctx: Context) {
+  static async getPostList(ctx: Context) {
     try {
-      const postList = await this.postService.getPostList();
+      const postList = await Post.postService.getPostList();
       ctx.body = { success: true, posts: postList };
     } catch (error) {
       console.error('Error during get post list:', error);
-      ctx.body = { success: false, message: 'Internal Server Error' };
+      ctx.body = { success: false, message: 'POST 리스트 실패' };
     }
   }
 
-   async getPostsById(ctx: Context) {
+  static async getPostsById(ctx: Context) {
     const { id } = ctx.params;
 
     try {
-
-      const userPosts = await this.postService.getPostsById(id);
+      const userPosts = await Post.postService.getPostsById(id);
       ctx.body = { success: true, posts: userPosts };
     } catch (error) {
       console.error('Error during get posts by id:', error);
-      ctx.body = { success: false, message: 'Internal Server Error' };
+      ctx.body = { success: false, message: 'POST 조회 실패' };
     }
   }
 
-   async updatePost(ctx: Context) {
+  static async updatePost(ctx: Context) {
     const { id } = ctx.params;
     const { user_id, title, content } = ctx.request.body as any;
 
     try {
-      const updatedPost = await this.postService.updatePost( user_id, id, title, content);
+      const updatedPost = await Post.postService.updatePost( user_id, id, title, content);
       if(updatedPost === false){
-          ctx.body = { success: false, message:'User does not own the post' };
+          ctx.body = { success: false, message:'작성자 불일치' };
     } else {
           ctx.body = { success: true, post: updatedPost };
       }
     } catch (error) {
       console.error('Error during update post:', error);
-      ctx.body = { success: false, message: 'Internal Server Error' };
+      ctx.body = { success: false, message: 'POST 수정 실패' };
     }
   }
 
-   async deletePost(ctx: Context) {
+  static async deletePost(ctx: Context) {
     const { postId } = ctx.params;
     const user_id = ctx.request.body as any;
     try {
-      const deletedPost = await this.postService.deletePost( user_id,postId);
+      const deletedPost = await Post.postService.deletePost( user_id,postId);
         if(!deletedPost){
             ctx.body = { success: true, post: deletedPost };
         }else{
@@ -75,7 +69,33 @@ export default class Post {
         }
     } catch (error) {
       console.error('Error during delete post:', error);
-      ctx.body = { success: false, message: 'Internal Server Error' };
+      ctx.body = { success: false, message: 'POST 삭제 실패' };
     }
   }
+  
+  static async createReply(ctx: Context) {
+    const { postId, userId, content } = ctx.request.body as any;
+
+    try {
+      const createdReply = await Post.postService.createReply(postId, userId, content);
+      ctx.body = { success: true, reply: createdReply };
+    } catch (error) {
+      console.error('Error during create reply:', error);
+      ctx.body = { success: false, message: 'Reply 작성 실패' };
+    }
+  }
+
+  static async getRepliesByPostId(ctx: Context) {
+    const { postId } = ctx.params;
+
+    try {
+      const replyList = await Post.postService.getRepliesByPostId(postId);
+      ctx.body = { success: true, replies: replyList };
+    } catch (error) {
+      console.error('Error during get replies by post id:', error);
+      ctx.body = { success: false, message: 'Reply 리스트 실패' };
+    }
+  }
+
+
 }

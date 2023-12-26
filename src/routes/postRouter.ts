@@ -5,13 +5,14 @@ import { authenticate } from '../middlewares/authenticate';
 
 const app = new Koa();
 const router = new Router();
-const post = new Post()
 
-router.post('/create', authenticate, async (ctx, next) => await post.createPost(ctx));
-router.get('/list', async (ctx, next) => await post.getPostList(ctx));
-router.get('/:id', async (ctx, next) => await post.getPostsById(ctx));
-router.post('/update/:id', async (ctx, next) => await post.updatePost(ctx));
-router.post('/delete/:id', async (ctx, next) => await post.deletePost(ctx));
+router.post('/create', authenticate, Post.createPost);
+router.get('/list', Post.getPostList);
+router.get('/:id', Post.getPostsById);
+router.post('/update/:id', Post.updatePost);
+router.post('/delete/:id', Post.deletePost);
+router.post('/:id/reply/create', authenticate, Post.createReply);
+router.get('/:id/reply/list', Post.getRepliesByPostId);
 
 app.use(router.routes()).use(router.allowedMethods());
 
