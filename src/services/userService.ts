@@ -22,9 +22,7 @@ async loginUser(username: string, password: string, social?: string) {
             text: 'SELECT * FROM users WHERE username = $1',
             values: [username],
         };
-
         const result: QueryResult = await this.db.query(query);
-
         if (result.rows.length > 0) {
             const user = result.rows[0];
             const passwordMatch = await bcrypt.compare(password, user.password);
@@ -39,8 +37,7 @@ async loginUser(username: string, password: string, social?: string) {
             return false;
         }
     } catch (error) {
-        console.error("Error during login:", error);
-        throw error;
+        throw new Error('LOGIN 실패');
     }
 }
 
@@ -53,27 +50,21 @@ async registerUser(username: string, password: string, social?: string) {
             text: 'SELECT * FROM users WHERE username = $1',
             values: [username],
         };
-
         const existingUserResult = await client.query(userExistsQuery);
-
         if (existingUserResult.rows.length > 0) {
-            throw new Error('User already exists');
+            throw new Error('이미 등록된 유저');
         }
         const hashedPassword = await bcrypt.hash(password, 10); 
         const registerUserQuery = {
             text: 'INSERT INTO users(username, password) VALUES ($1, $2) RETURNING *',
             values: [username, hashedPassword],
         };
-
         const registeredUserResult = await client.query(registerUserQuery);
-
         await client.query('COMMIT');
-
         return registeredUserResult.rows[0];
     } catch (error) {
         await client.query('ROLLBACK');
-        console.error("Error during register user:", error);
-        throw error;
+        throw new Error('유저 등록 실패');
     } finally {
         client.release();
     }
