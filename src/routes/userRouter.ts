@@ -7,6 +7,8 @@ const router = new Router();
 
 router.post('/login', Users.loginUser);
 router.post('/register', Users.registerUser);
+router.get('/oauth/kakao', Users.kakaoLogin);
+router.get('/oauth/kakao/callback', Users.kakaoLoginCallback);
 router.get('/', (ctx, next) => ctx.body = '👌👌👌👌👌👌👌');
 
 app.use(router.routes()).use(router.allowedMethods());

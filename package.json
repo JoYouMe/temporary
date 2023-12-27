@@ -13,6 +13,7 @@
   "author": "yumi",
   "license": "ISC",
   "dependencies": {
+    "axios": "^1.6.3",
     "bcrypt": "^5.1.1",
     "dotenv": "^16.3.1",
     "jsonwebtoken": "^9.0.2",
