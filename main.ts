@@ -4,7 +4,7 @@ import { database } from './src/database/config'
 import mainRouter from './src/routes/index';
 import userRouter from './src/routes/userRouter'
 import bodyParser from 'koa-bodyparser';
-import {internalErrorHandler, notAvailablePathErrorHandler} from './src/middlewares/errorHandler'
+import { internalErrorHandler, notAvailablePathErrorHandler } from './src/middlewares/errorHandler'
 
 const app = new Koa();
 

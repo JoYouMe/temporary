@@ -1,5 +1,6 @@
 import { database } from "../database/config";
 import { Pool, QueryResult } from "pg";
+import { CreatePost, CreateReply, UpdatePost } from "../interfaces/IPost";
 
 export default class PostService {
     private static instance: PostService;
@@ -16,22 +17,18 @@ export default class PostService {
         return PostService.instance;
     }
 
-    async createPost(user_id: string, title:string, content: string) {
+    async createPost(createPost: CreatePost) {
         const client = await this.db.connect();
-
+        const { userId, title, content } = createPost;
         try {
             await client.query('BEGIN');
-
             const createPostQuery = {
-                text: 'INSERT INTO posts(user_id, title, content) VALUES ($1, $2, $3) RETURNING *',
-                values: [user_id, title, content],
+                text: 'INSERT INTO posts(userId, title, content) VALUES ($1, $2, $3) RETURNING *',
+                values: [userId, title, content],
             };
-
-            const createdPostResult = await client.query(createPostQuery).then((result)=> result.rows[0])
-
+            const createdPostResult: QueryResult = await client.query(createPostQuery)
             await client.query('COMMIT');
-
-            return createdPostResult;
+            return createdPostResult.rows[0];
         } catch (error) {
             await client.query('ROLLBACK');
             throw new Error('POST 작성 실패');
@@ -65,13 +62,13 @@ export default class PostService {
         }
     }
 
-    async updatePost(userId: number, postId: number, title:string, content: string) {
+    async updatePost(updatePost: UpdatePost) {
         const client = await this.db.connect();
-
+        const { userId, postId, title, content } = updatePost
         try {
             await client.query('BEGIN');
             const checkUserQuery = {
-                text: 'SELECT * FROM posts WHERE id = $1 AND user_id = $2',
+                text: 'SELECT * FROM posts WHERE id = $1 AND userId = $2',
                 values: [postId, userId],
             };
             const checkResult = await client.query(checkUserQuery);
@@ -80,13 +77,11 @@ export default class PostService {
             }
             const updatePostQuery = {
                 text: 'UPDATE posts SET title = $1, content = $2, updated = now() WHERE id = $3 RETURNING *',
-                values: [ title ,content, postId],
+                values: [title, content, postId],
             };
-    
-            const updatedPost = await client.query(updatePostQuery).then((result)=> result.rows[0])
+            const updatedPost: QueryResult = await client.query(updatePostQuery);
             await client.query('COMMIT');
-            return updatedPost;
-
+            return updatedPost.rows[0];
         } catch (error) {
             await client.query('ROLLBACK');
             throw new Error('작성자 불일치');
@@ -100,7 +95,7 @@ export default class PostService {
         try {
             await client.query('BEGIN');
             const checkUserQuery = {
-                text: 'SELECT * FROM posts WHERE id = $1 AND user_id = $2',
+                text: 'SELECT * FROM posts WHERE id = $1 AND userId = $2',
                 values: [postId, userId],
             };
             const checkResult = await client.query(checkUserQuery);
@@ -122,9 +117,9 @@ export default class PostService {
         }
     }
 
-    async createReply(postId: number, userId: number, content: string) {
+    async createReply(createRpy: CreateReply) {
         const client = await this.db.connect();
-
+        const { userId, postId, content } = createRpy
         try {
             await client.query('BEGIN');
             const checkPostQuery = {
@@ -136,12 +131,12 @@ export default class PostService {
                 throw new Error('POST 없음');
             }
             const createReplyQuery = {
-                text: 'INSERT INTO replies(post_id, user_id, content) VALUES ($1, $2, $3) RETURNING *',
+                text: 'INSERT INTO replies(postId, userId, content) VALUES ($1, $2, $3) RETURNING *',
                 values: [postId, userId, content],
             };
-            const createdReplyResult = await client.query(createReplyQuery).then((result) => result.rows[0]);
+            const createdReplyResult: QueryResult = await client.query(createReplyQuery);
             await client.query('COMMIT');
-            return createdReplyResult;
+            return createdReplyResult.rows[0];
         } catch (error) {
             await client.query('ROLLBACK');
             throw new Error('RELPY 작성 실패');
@@ -150,10 +145,10 @@ export default class PostService {
         }
     }
 
-    async getRepliesByPostId(postId: number){
+    async getRepliesByPostId(postId: number) {
         try {
             const query = {
-                text: 'SELECT * FROM replies WHERE post_id = $1',
+                text: 'SELECT * FROM replies WHERE postId = $1',
                 values: [postId],
             };
             const result: QueryResult = await this.db.query(query);

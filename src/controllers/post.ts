@@ -1,16 +1,17 @@
 import { Context } from 'koa';
 import PostService from '../services/postService';
+import { CreatePost, CreateReply, UpdatePost } from '../interfaces/IPost';
 export default class Post {
   private static readonly postService: PostService = PostService.getInstance();
 
-  constructor(){
+  constructor() {
   }
 
   static async createPost(ctx: Context) {
-    const { user_id, title, content } = ctx.request.body as any
+    const createPost = ctx.request.body as CreatePost
 
     try {
-      const createdPost = await Post.postService.createPost(user_id, title, content);
+      const createdPost = await Post.postService.createPost(createPost);
       ctx.body = { success: true, post: createdPost };
     } catch (error) {
       console.error('Error during create post:', error);
@@ -42,14 +43,14 @@ export default class Post {
 
   static async updatePost(ctx: Context) {
     const { id } = ctx.params;
-    const { user_id, title, content } = ctx.request.body as any;
+    const updatePost = ctx.request.body as UpdatePost;
 
     try {
-      const updatedPost = await Post.postService.updatePost( user_id, id, title, content);
-      if(updatedPost === false){
-          ctx.body = { success: false, message:'작성자 불일치' };
-    } else {
-          ctx.body = { success: true, post: updatedPost };
+      const updatedPost = await Post.postService.updatePost(updatePost);
+      if (updatedPost === false) {
+        ctx.body = { success: false, message: '작성자 불일치' };
+      } else {
+        ctx.body = { success: true, post: updatedPost };
       }
     } catch (error) {
       console.error('Error during update post:', error);
@@ -59,25 +60,25 @@ export default class Post {
 
   static async deletePost(ctx: Context) {
     const { postId } = ctx.params;
-    const user_id = ctx.request.body as any;
+    const userId = ctx.request.body as any;
     try {
-      const deletedPost = await Post.postService.deletePost( user_id,postId);
-        if(!deletedPost){
-            ctx.body = { success: true, post: deletedPost };
-        }else{
-            ctx.body = { success: false, post: deletedPost };
-        }
+      const deletedPost = await Post.postService.deletePost(userId, postId);
+      if (!deletedPost) {
+        ctx.body = { success: true, post: deletedPost };
+      } else {
+        ctx.body = { success: false, post: deletedPost };
+      }
     } catch (error) {
       console.error('Error during delete post:', error);
       ctx.body = { success: false, message: 'POST 삭제 실패' };
     }
   }
-  
+
   static async createReply(ctx: Context) {
-    const { postId, userId, content } = ctx.request.body as any;
+    const createRpy = ctx.request.body as CreateReply
 
     try {
-      const createdReply = await Post.postService.createReply(postId, userId, content);
+      const createdReply = await Post.postService.createReply(createRpy);
       ctx.body = { success: true, reply: createdReply };
     } catch (error) {
       console.error('Error during create reply:', error);
@@ -96,6 +97,5 @@ export default class Post {
       ctx.body = { success: false, message: 'Reply 리스트 실패' };
     }
   }
-
 
 }

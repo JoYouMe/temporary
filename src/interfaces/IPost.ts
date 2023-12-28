@@ -1,5 +1,26 @@
-export interface PostRequestBody {
-    username: string;
+export interface CreatePost {
+    userId: number;
     password: string;
-    social?: string;
+    title: string;
+    content: string;
+}
+
+export interface UpdatePost {
+    userId: number;
+    postId: string;
+    title: string;
+    content: string;
+}
+
+export interface UpdatePost {
+    userId: number;
+    postId: string;
+    title: string;
+    content: string;
+}
+
+export interface CreateReply {
+    userId: number;
+    postId: string;
+    content: string;
 }
