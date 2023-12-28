@@ -42,11 +42,11 @@ export default class Post {
   }
 
   static async updatePost(ctx: Context) {
-    const { id } = ctx.params;
+    const { postId } = ctx.params;
     const updatePost = ctx.request.body as UpdatePost;
 
     try {
-      const updatedPost = await Post.postService.updatePost(updatePost);
+      const updatedPost = await Post.postService.updatePost(updatePost, postId);
       if (updatedPost === false) {
         ctx.body = { success: false, message: '작성자 불일치' };
       } else {

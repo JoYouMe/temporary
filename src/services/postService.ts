@@ -62,9 +62,9 @@ export default class PostService {
         }
     }
 
-    async updatePost(updatePost: UpdatePost) {
+    async updatePost(updatePost: UpdatePost, postId:number) {
         const client = await this.db.connect();
-        const { userId, postId, title, content } = updatePost
+        const { userId, title, content } = updatePost
         try {
             await client.query('BEGIN');
             const checkUserQuery = {
