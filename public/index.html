@@ -1,57 +1,58 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Oauth kakao</title>
-</head>
-<body>
+  </head>
+  <body>
+    <script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
+    <script>
+      Kakao.init('37c849dca87bb337a49024603ee61d63');
+      console.log(Kakao.isInitialized());
 
-<script src="https://developers.kakao.com/sdk/js/kakao.js"></script>
-<script>
-    Kakao.init('37c849dca87bb337a49024603ee61d63');
-    console.log(Kakao.isInitialized()); 
+      // function kakaoLogin() {
+      //   Kakao.Auth.login({
+      //     success: function (response) {
+      //       Kakao.API.request({
+      //         url: '/v2/user/me',
+      //         success: function (res) {
+      //           console.log(response);
+      //           const id = res.id;
+      //           const profileImg = res.properties.profile_image;
+      //           const name = res.properties.nickname;
+      //           alert(`Login successful! ID: ${id} Name: ${name}`);
+      //         },
+      //         fail: function (error) {
+      //           console.log(error);
+      //         },
+      //       });
+      //     },
+      //     fail: function (error) {
+      //       console.log(error);
+      //     },
+      //   });
+      // }
 
-    function kakaoLogin() {
-        Kakao.Auth.login({
-            success: function (response) {
-                Kakao.API.request({
-                    url: '/v2/user/me', 
-                    success: function (res) {
-                        console.log(response);
-                        const id = res.id;
-                        const email = res.kakao_account.email;
-                        const name = res.properties.nickname;
-                    },
-                    fail: function (error) {
-                        console.log(error);
-                    },
-                });
-            },
-            fail: function (error) {
-                console.log(error);
-            },
-        });
-    }
-
-
-    function kakaoLogout() {
-        if (Kakao.Auth.getAccessToken()) {
-            Kakao.API.request({
-                url: '/v1/user/unlink',
-                success: function (response) {
-                    console.log(response);
-                },
-                fail: function (error) {
-                    console.log(error);
-                },
-            });
-            Kakao.Auth.setAccessToken(undefined);
-        }
-    }
-</script>
-
-<a href="javascript:kakaoLogin();"><img src="https://developers.kakao.com/static/images/m/product/sub/kakaoLogin.png"/></a>
-
-</body>
+      // function kakaoLogout() {
+      //   if (Kakao.Auth.getAccessToken()) {
+      //     Kakao.API.request({
+      //       url: '/v1/user/unlink',
+      //       success: function (response) {
+      //         console.log(response);
+      //         alert('Logout successful!');
+      //       },
+      //       fail: function (error) {
+      //         console.log(error);
+      //       },
+      //     });
+      //     Kakao.Auth.setAccessToken(undefined);
+      //   }
+      // }
+    </script>
+    <a href="/user/oauth/kakao"
+      ><img
+        src="https://developers.kakao.com/static/images/m/product/sub/kakaoLogin.png"
+    /></a>
+  </body>
 </html>
