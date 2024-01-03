@@ -10,7 +10,6 @@ router.post('/register', Users.registerUser);
 router.post('/logout', Users.logoutUser);
 router.get('/oauth/kakao', Users.kakaoLogin);
 router.get('/oauth/kakao/callback', Users.loginWithKakao);
-router.get('/', (ctx, next) => ctx.body = '👌👌👌👌👌👌👌');
 
 app.use(router.routes()).use(router.allowedMethods());
 
