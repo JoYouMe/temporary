@@ -5,14 +5,15 @@ import { authenticate } from '../middlewares/authenticate';
 
 const app = new Koa();
 const router = new Router();
+const post = new Post();
 
-router.post('/create', authenticate, Post.createPost);
-router.get('/list', Post.getPostList);
-router.get('/:id', Post.getPostsById);
-router.post('/update/:id', Post.updatePost);
-router.post('/delete/:id', Post.deletePost);
-router.post('/:id/reply/create', authenticate, Post.createReply);
-router.get('/:id/reply/list', Post.getRepliesByPostId);
+router.post('/create', authenticate, post.createPost);
+router.get('/list', post.getPostList);
+router.get('/:id', post.getPostsById);
+router.post('/update/:id', post.updatePost);
+router.post('/delete/:id', post.deletePost);
+router.post('/:id/reply/create', authenticate, post.createReply);
+router.get('/:id/reply/list', post.getRepliesByPostId);
 
 app.use(router.routes()).use(router.allowedMethods());
 

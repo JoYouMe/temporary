@@ -6,9 +6,13 @@ import qs from 'qs'
 import axios from 'axios'
 
 export default class Users {
-    private static readonly userService: UserService = UserService.getInstance();
+    private readonly userService: UserService 
 
-    static async generateToken(username: string) {
+    constructor(){
+        this.userService = UserService.getInstance();
+    }
+
+     async generateToken(username: string) {
         try {
             const secretKey = 'secretKey';
             const payload = { username };
@@ -26,18 +30,18 @@ export default class Users {
         }
     }
 
-    static async setJwtTokenInCookie(ctx: Context, username: string) {
+     async setJwtTokenInCookie(ctx: Context, username: string) {
         const token = await this.generateToken(username);
         ctx.cookies.set('jwtToken', token, { httpOnly: true, expires: new Date(Date.now() + 1 * 60 * 60 * 1000) });
     }
 
 
-    static async loginUser(ctx: Context) {
+     async loginUser(ctx: Context) {
         const loginReq = ctx.request.body as LoginRequest;
         try {
-            const result = await Users.userService.loginUser(loginReq);
+            const result = await this.userService.loginUser(loginReq);
             if (result) {
-                await Users.setJwtTokenInCookie(ctx, loginReq.username);
+                await this.setJwtTokenInCookie(ctx, loginReq.username);
                 ctx.body = { success: true, token: '토큰 생성 성공' };
             } else {
                 ctx.body = { success: false, message: `${loginReq.username} 로그인 실패` };
@@ -48,12 +52,12 @@ export default class Users {
         }
     }
 
-    static async registerUser(ctx: Context) {
+     async registerUser(ctx: Context) {
         const loginReq = ctx.request.body as LoginRequest;
         try {
-            const result = await Users.userService.registerUser(loginReq);
+            const result = await this.userService.registerUser(loginReq);
             if (result) {
-                await Users.setJwtTokenInCookie(ctx, loginReq.username);
+                await this.setJwtTokenInCookie(ctx, loginReq.username);
                 ctx.body = { success: true, message: '유저 등록 성공' };
             } else {
                 ctx.body = { success: false, message: `${loginReq.username} 이미 있음` };
@@ -64,7 +68,7 @@ export default class Users {
         }
     }
 
-    static async logoutUser(ctx: Context) {
+     async logoutUser(ctx: Context) {
         try {
             ctx.cookies.set('jwtToken', null, { httpOnly: true, expires: new Date(0) });
             ctx.body = { success: true, message: '로그아웃 성공' };
@@ -74,7 +78,7 @@ export default class Users {
         }
     }
 
-    static async kakaoLogin(ctx: Context) {
+     async kakaoLogin(ctx: Context) {
 
         const kakaoData = {
             client_id: 'be947eacbcb573f31fafa4f015f1b173',
@@ -87,7 +91,7 @@ export default class Users {
 
     }
 
-    static async loginWithKakao(ctx: Context) {
+     async loginWithKakao(ctx: Context) {
         const { code } = ctx.request.query as any
         try {
             const formData = {
@@ -120,10 +124,10 @@ export default class Users {
             const profileImg = userInfo.properties.profile_image;
             const id = userInfo.id
 
-            const user = await Users.userService.getUserByUserKakaoId(id);
+            const user = await this.userService.getUserByUserKakaoId(id);
             let createAccountResult;
             if (user === null) {
-                const { ok: user } = await Users.userService.createKakaoAccount({
+                const { ok: user } = await this.userService.createKakaoAccount({
                     username,
                     id,
                     profileImg
@@ -132,9 +136,9 @@ export default class Users {
             }
 
             if (user || createAccountResult) {
-                const loginResult = await Users.userService.kakaoLogin(id);
+                const loginResult = await this.userService.kakaoLogin(id);
                 if (loginResult.ok) {
-                    await Users.setJwtTokenInCookie(ctx, username);
+                    await this.setJwtTokenInCookie(ctx, username);
                     ctx.body = { success: true, token: '토큰 생성 성공' };
                 } else {
                     ctx.body = { success: false, message: '카카오 로그인 실패' };

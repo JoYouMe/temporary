@@ -4,12 +4,13 @@ import Users from '../controllers/users';
 
 const app = new Koa();
 const router = new Router();
+const users = new Users();
 
-router.post('/login', Users.loginUser);
-router.post('/register', Users.registerUser);
-router.post('/logout', Users.logoutUser);
-router.get('/oauth/kakao', Users.kakaoLogin);
-router.get('/oauth/kakao/callback', Users.loginWithKakao);
+router.post('/login', users.loginUser);
+router.post('/register', users.registerUser);
+router.post('/logout', users.logoutUser);
+router.get('/oauth/kakao', users.kakaoLogin);
+router.get('/oauth/kakao/callback', users.loginWithKakao);
 
 app.use(router.routes()).use(router.allowedMethods());
 

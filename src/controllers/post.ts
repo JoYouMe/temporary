@@ -2,16 +2,17 @@ import { Context } from 'koa';
 import PostService from '../services/postService';
 import { CreatePost, CreateReply, UpdatePost } from '../interfaces/IPost';
 export default class Post {
-  private static readonly postService: PostService = PostService.getInstance();
+  private readonly postService: PostService
 
   constructor() {
+    this.postService  = PostService.getInstance();
   }
 
-  static async createPost(ctx: Context) {
+ async createPost(ctx: Context) {
     const createPost = ctx.request.body as CreatePost
 
     try {
-      const createdPost = await Post.postService.createPost(createPost);
+      const createdPost = await this.postService.createPost(createPost);
       ctx.body = { success: true, post: createdPost };
     } catch (error) {
       console.error('Error during create post:', error);
@@ -19,9 +20,9 @@ export default class Post {
     }
   }
 
-  static async getPostList(ctx: Context) {
+ async getPostList(ctx: Context) {
     try {
-      const postList = await Post.postService.getPostList();
+      const postList = await this.postService.getPostList();
       ctx.body = { success: true, posts: postList };
     } catch (error) {
       console.error('Error during get post list:', error);
@@ -29,11 +30,11 @@ export default class Post {
     }
   }
 
-  static async getPostsById(ctx: Context) {
+ async getPostsById(ctx: Context) {
     const { id } = ctx.params;
 
     try {
-      const userPosts = await Post.postService.getPostsById(id);
+      const userPosts = await this.postService.getPostsById(id);
       ctx.body = { success: true, posts: userPosts };
     } catch (error) {
       console.error('Error during get posts by id:', error);
@@ -41,12 +42,12 @@ export default class Post {
     }
   }
 
-  static async updatePost(ctx: Context) {
+ async updatePost(ctx: Context) {
     const { postId } = ctx.params;
     const updatePost = ctx.request.body as UpdatePost;
 
     try {
-      const updatedPost = await Post.postService.updatePost(updatePost, postId);
+      const updatedPost = await this.postService.updatePost(updatePost, postId);
       if (updatedPost === false) {
         ctx.body = { success: false, message: '작성자 불일치' };
       } else {
@@ -58,11 +59,11 @@ export default class Post {
     }
   }
 
-  static async deletePost(ctx: Context) {
+ async deletePost(ctx: Context) {
     const { postId } = ctx.params;
     const userId = ctx.request.body as any;
     try {
-      const deletedPost = await Post.postService.deletePost(userId, postId);
+      const deletedPost = await this.postService.deletePost(userId, postId);
       if (!deletedPost) {
         ctx.body = { success: true, post: deletedPost };
       } else {
@@ -74,11 +75,11 @@ export default class Post {
     }
   }
 
-  static async createReply(ctx: Context) {
+ async createReply(ctx: Context) {
     const createRpy = ctx.request.body as CreateReply
 
     try {
-      const createdReply = await Post.postService.createReply(createRpy);
+      const createdReply = await this.postService.createReply(createRpy);
       ctx.body = { success: true, reply: createdReply };
     } catch (error) {
       console.error('Error during create reply:', error);
@@ -86,11 +87,11 @@ export default class Post {
     }
   }
 
-  static async getRepliesByPostId(ctx: Context) {
+ async getRepliesByPostId(ctx: Context) {
     const { postId } = ctx.params;
 
     try {
-      const replyList = await Post.postService.getRepliesByPostId(postId);
+      const replyList = await this.postService.getRepliesByPostId(postId);
       ctx.body = { success: true, replies: replyList };
     } catch (error) {
       console.error('Error during get replies by post id:', error);
