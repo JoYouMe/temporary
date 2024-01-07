@@ -1,20 +1,13 @@
-import { database } from "../database/config";
-import { Pool, QueryResult } from "pg";
+
+import { QueryResult } from "pg";
 import bcrypt from 'bcrypt';
 import { KaKaoData, LoginRequest, UserDetails } from "../interfaces/IUser";
+import { Database } from "../database/config";
 
 export default class UserService {
-    public static instance: UserService;
-    private db: Pool;
-    private constructor() {
-        this.db = database();
-    }
-
-    public static getInstance(): UserService {
-        if (!UserService.instance) {
-            UserService.instance = new UserService();
-        }
-        return UserService.instance;
+    private db: Database;
+     constructor() {
+        this.db = Database.getInstance();
     }
 
     async loginUser(loginReq: LoginRequest) {
@@ -44,10 +37,8 @@ export default class UserService {
     }
 
     async registerUser(loginReq: LoginRequest) {
-        const client = await this.db.connect();
         const { username, password } = loginReq
         try {
-            await client.query('BEGIN');
             const existingUser = await this.getUserByUsername(username);
             if (existingUser) {
                 throw new Error('이미 등록된 유저');
@@ -57,14 +48,10 @@ export default class UserService {
                 text: 'INSERT INTO users(username, password) VALUES ($1, $2) RETURNING *',
                 values: [username, hashedPassword],
             };
-            const registeredUserResult: QueryResult = await client.query(registerUserQuery);
-            await client.query('COMMIT');
+            const registeredUserResult: QueryResult = await  this.db.query(registerUserQuery);
             return registeredUserResult.rows[0];
         } catch (error) {
-            await client.query('ROLLBACK');
             throw new Error('유저 등록 실패');
-        } finally {
-            client.release();
         }
     }
 
@@ -105,24 +92,18 @@ export default class UserService {
     }
 
     async createKakaoAccount(userDetails: UserDetails) {
-        const client = await this.db.connect();
         try {
-            await client.query('BEGIN');
             const { id, username, profileImg } = userDetails;
             const createUserQuery = {
                 text: 'INSERT INTO users(username, password, kakaoid, profileimg) VALUES ($1, $2, $3, $4) RETURNING *',
                 values: [username, -1, id, profileImg],
             };
-            const createdUserResult: QueryResult = await client.query(createUserQuery)
-            await client.query('COMMIT');
+            const createdUserResult: QueryResult = await this.db.query(createUserQuery)
             return createdUserResult.rows[0];
         } catch (error) {
-            await client.query('ROLLBACK');
             console.error("Error during createAccount:", error);
             throw error;
-        } finally {
-            client.release();
-        }
+        } 
     }
 
     async kakaoLogin(id: number) {

@@ -1,47 +1,28 @@
 import { Context } from "koa";
-import UserService from "../services/userService";
-import jwt from 'jsonwebtoken';
 import { LoginRequest } from "../interfaces/IUser";
 import qs from 'qs'
 import axios from 'axios'
+import UserService from "../services/userService";
+import { Token } from "./token";
+import { Database } from "../database/config";
 
 export default class Users {
-    private readonly userService: UserService 
+    private readonly userService: UserService;
+    private readonly tokenService: Token;
+    private db: Database;
 
-    constructor(){
-        this.userService = UserService.getInstance();
+    constructor() {
+        this.userService = new UserService();
+        this.tokenService = new Token('secretKey');
+        this.db = Database.getInstance();
     }
 
-     async generateToken(username: string) {
-        try {
-            const secretKey = 'secretKey';
-            const payload = { username };
-            const existingToken = jwt.sign(payload, secretKey, { expiresIn: '1h' });
-            const decoded = jwt.decode(existingToken) as { exp?: number };
-
-            // 토큰이 10초 남았을때 refresh 
-            if (decoded.exp !== undefined && decoded.exp * 1000 - Date.now() < 10 * 1000) {
-                return jwt.sign(payload, secretKey, { expiresIn: '1h' });
-            }
-            return existingToken;
-        } catch (error) {
-            console.error('Error generating token:', error);
-            throw new Error('토큰 생성 실패');
-        }
-    }
-
-     async setJwtTokenInCookie(ctx: Context, username: string) {
-        const token = await this.generateToken(username);
-        ctx.cookies.set('jwtToken', token, { httpOnly: true, expires: new Date(Date.now() + 1 * 60 * 60 * 1000) });
-    }
-
-
-     async loginUser(ctx: Context) {
+    loginUser = async (ctx: Context) => {
         const loginReq = ctx.request.body as LoginRequest;
         try {
             const result = await this.userService.loginUser(loginReq);
             if (result) {
-                await this.setJwtTokenInCookie(ctx, loginReq.username);
+                await this.tokenService.setJwtTokenInCookie(ctx, loginReq.username);
                 ctx.body = { success: true, token: '토큰 생성 성공' };
             } else {
                 ctx.body = { success: false, message: `${loginReq.username} 로그인 실패` };
@@ -52,23 +33,29 @@ export default class Users {
         }
     }
 
-     async registerUser(ctx: Context) {
+    registerUser = async (ctx: Context) => {
+        const client = await this.db.connect();
         const loginReq = ctx.request.body as LoginRequest;
         try {
+            await client.query('BEGIN');
             const result = await this.userService.registerUser(loginReq);
             if (result) {
-                await this.setJwtTokenInCookie(ctx, loginReq.username);
+                await this.tokenService.setJwtTokenInCookie(ctx, loginReq.username);
+                await client.query('COMMIT');
                 ctx.body = { success: true, message: '유저 등록 성공' };
             } else {
                 ctx.body = { success: false, message: `${loginReq.username} 이미 있음` };
             }
         } catch (error) {
+            await client.query('ROLLBACK');
             console.error("Error during register:", error);
             ctx.body = { success: false, message: '유저 등록 실패' };
+        } finally {
+            client.release();
         }
     }
 
-     async logoutUser(ctx: Context) {
+    logoutUser = async (ctx: Context) => {
         try {
             ctx.cookies.set('jwtToken', null, { httpOnly: true, expires: new Date(0) });
             ctx.body = { success: true, message: '로그아웃 성공' };
@@ -78,8 +65,7 @@ export default class Users {
         }
     }
 
-     async kakaoLogin(ctx: Context) {
-
+    kakaoLogin = async (ctx: Context) => {
         const kakaoData = {
             client_id: 'be947eacbcb573f31fafa4f015f1b173',
             client_secret: '9cb6bYE3816sEBWN61UYNVP6AODQp1Us',
@@ -88,12 +74,13 @@ export default class Users {
 
         const kakaoAuthorize = `https://kauth.kakao.com/oauth/authorize?client_id=${kakaoData.client_id}&redirect_uri=${kakaoData.redirect_uri}&response_type=code`;
         ctx.redirect(kakaoAuthorize);
-
     }
 
-     async loginWithKakao(ctx: Context) {
+    loginWithKakao = async (ctx: Context) => {
         const { code } = ctx.request.query as any
+        const client = await this.db.connect();
         try {
+            await client.query('BEGIN');
             const formData = {
                 grant_type: 'authorization_code',
                 client_id: 'be947eacbcb573f31fafa4f015f1b173',
@@ -101,24 +88,17 @@ export default class Users {
                 code,
                 client_secret: '9cb6bYE3816sEBWN61UYNVP6AODQp1Us',
             };
+
             const {
                 data: { access_token },
-            } = await axios
-                .post(`https://kauth.kakao.com/oauth/token?${qs.stringify(formData)}`)
-                .then((res) => {
-                    return res;
-                });
+            } = await axios.post(`https://kauth.kakao.com/oauth/token?${qs.stringify(formData)}`);
 
-            const { data: userInfo } = await axios
-                .get('https://kapi.kakao.com/v2/user/me', {
-                    headers: {
-                        Authorization: 'Bearer ' + access_token,
-                        'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
-                    },
-                })
-                .then((res) => {
-                    return res;
-                });
+            const { data: userInfo } = await axios.get('https://kapi.kakao.com/v2/user/me', {
+                headers: {
+                    Authorization: 'Bearer ' + access_token,
+                    'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+                },
+            });
 
             const username = userInfo.properties.nickname;
             const profileImg = userInfo.properties.profile_image;
@@ -133,12 +113,13 @@ export default class Users {
                     profileImg
                 });
                 createAccountResult = { ok: user };
+                await client.query('COMMIT');
             }
 
             if (user || createAccountResult) {
                 const loginResult = await this.userService.kakaoLogin(id);
                 if (loginResult.ok) {
-                    await this.setJwtTokenInCookie(ctx, username);
+                    await this.tokenService.setJwtTokenInCookie(ctx, username);
                     ctx.body = { success: true, token: '토큰 생성 성공' };
                 } else {
                     ctx.body = { success: false, message: '카카오 로그인 실패' };
@@ -147,11 +128,11 @@ export default class Users {
                 ctx.body = { success: false, message: "카카오 유저 등록 실패" };
             }
         } catch (e) {
+            await client.query('ROLLBACK');
             console.error(e);
             ctx.body = { success: false, error: '카카오 로그인 실패' };
+        } finally {
+            client.release();
         }
     }
-
-
-
 }

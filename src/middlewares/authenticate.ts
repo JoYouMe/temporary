@@ -1,22 +1,30 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { Context, Next } from 'koa';
-import Users from '../controllers/users';
+import { Token } from '../controllers/token';
 
-export async function authenticate(ctx: Context, next: Next) {
-    const token = ctx.cookies.get('jwtToken'); 
-    try {
-        if (token) {
-            const decodedToken = jwt.verify(token, 'secretKey') as JwtPayload;
-            Users.setJwtTokenInCookie(ctx, decodedToken.username); 
-            ctx.state.user = decodedToken;
-            return next();
-        } else {
-            ctx.status = 401; 
+export class AuthenticationMiddleware {
+    private readonly tokenManager: Token;
+
+    constructor(secretKey: string) {
+        this.tokenManager = new Token(secretKey);
+    }
+
+     authenticate = async (ctx: Context, next: Next) => {
+        const cookieToken = ctx.cookies.get('jwtToken');
+        try {
+            if (cookieToken) {
+                const decodedToken = jwt.verify(cookieToken, 'secretKey') as JwtPayload;
+                await this.tokenManager.setJwtTokenInCookie(ctx, decodedToken.username);
+                ctx.state.user = decodedToken;
+                return next();
+            } else {
+                ctx.status = 401;
+                ctx.body = { error: 'Unauthorized' };
+            }
+        } catch (error) {
+            console.error('JWT verification error:', error);
+            ctx.status = 401;
             ctx.body = { error: 'Unauthorized' };
         }
-    } catch (error) {
-        console.error('JWT verification error:', error);
-        ctx.status = 401; 
-        ctx.body = { error: 'Unauthorized' };
     }
 }
