@@ -2,41 +2,37 @@ import PostService from '../src/services/postService';
 import  Post  from '../src/controllers/post';
 import {Database} from '../src/database/config'
 
-// describe('PostService', () => {
-//   let postService;
-//   let db;
+describe('PostService', () => {
+  let postService;
 
-//   beforeEach(() => {
-//     db = Database.getInstance();
-//     postService = new PostService();
-//   });
+  beforeEach(() => {
+    postService = new PostService();
+  });
 
-//   test('updatePost should update a post in the database', async () => {
-//     const postId = '1';
-//     const updatePost ={ userId: '1', title: 'Updated Title', content: 'Updated Content'}
-//     const post = await postService.updatePost(updatePost, postId);
+  test('updatePost should update a post in the database', async () => {
+    const postId = '1';
+    const updatePost ={ userId: '1', title: 'Updated Title', content: 'Updated Content'}
+    const post = await postService.updatePost(updatePost, postId);
 
-//     expect(post).toBeDefined();
-//     expect(post.userId).toBe('1');
-//     expect(post.title).toBe('Updated Title');
-//     expect(post.content).toBe('Updated Content');
-//   });
+    expect(post).toBeDefined();
+    expect(post.userId).toBe('1');
+    expect(post.title).toBe('Updated Title');
+    expect(post.content).toBe('Updated Content');
+  });
 
-//   test('deletePost should delete a post from the database', async () => {
-//     const postId = '1';
-//     const userId = '1';
-//     const result = await postService.deletePost(userId, postId);
+  test('deletePost should delete a post from the database', async () => {
+    const postId = '1';
+    const userId = '1';
+    const result = await postService.deletePost(userId, postId);
 
-//     expect(result).toBe(true);
-//   });
-// });
+    expect(result).toBe(true);
+  });
+});
 
 describe('Post', () => {
   let post: Post;
-  let db: Database;
 
   beforeEach(() => {
-    db = Database.getInstance();
     post = new Post();
   });
 
