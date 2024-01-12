@@ -3,6 +3,10 @@ import { QueryResult } from "pg";
 import bcrypt from 'bcrypt';
 import { KaKaoData, LoginRequest, UserDetails } from "../interfaces/IUser";
 import { Database } from "../database/config";
+/**
+ * todo: service 더 세분화
+ * 트랜잭션 가져오기
+ */
 
 export default class UserService {
     private db: Database;

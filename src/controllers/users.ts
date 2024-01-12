@@ -6,6 +6,8 @@ import UserService from "../services/userService";
 import { Token } from "./token";
 import { Database } from "../database/config";
 
+
+
 export default class Users {
     private readonly userService: UserService;
     private readonly tokenService: Token;
@@ -38,14 +40,15 @@ export default class Users {
         const loginReq = ctx.request.body as LoginRequest;
         try {
             await client.query('BEGIN');
-            const result = await this.userService.registerUser(loginReq);
-            if (result) {
+            const existingUser = await this.userService.getUserByUsername(loginReq.username);
+            if (existingUser) {
+                ctx.body = { success: false, message: `${loginReq.username} 이미 있음` };
+                throw new Error('이미 등록된 유저');
+            }
                 await this.tokenService.setJwtTokenInCookie(ctx, loginReq.username);
                 await client.query('COMMIT');
                 ctx.body = { success: true, message: '유저 등록 성공' };
-            } else {
-                ctx.body = { success: false, message: `${loginReq.username} 이미 있음` };
-            }
+
         } catch (error) {
             await client.query('ROLLBACK');
             console.error("Error during register:", error);
