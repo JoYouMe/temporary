@@ -1,12 +1,12 @@
 import { Context } from "koa";
+import { QueryResult } from "pg";
 import { LoginRequest } from "../interfaces/IUser";
 import qs from 'qs'
 import axios from 'axios'
 import UserService from "../services/userService";
 import { Token } from "./token";
 import { Database } from "../database/config";
-
-
+import bcrypt from 'bcrypt';
 
 export default class Users {
     private readonly userService: UserService;
@@ -37,18 +37,29 @@ export default class Users {
 
     registerUser = async (ctx: Context) => {
         const client = await this.db.connect();
-        const loginReq = ctx.request.body as LoginRequest;
+        const registReq = ctx.request.body as LoginRequest;
         try {
             await client.query('BEGIN');
-            const existingUser = await this.userService.getUserByUsername(loginReq.username);
+            const existingUser = await this.userService.getUserByUsername(registReq.username);
             if (existingUser) {
-                ctx.body = { success: false, message: `${loginReq.username} 이미 있음` };
+                ctx.body = { success: false, message: `${registReq.username} 이미 있음` };
                 throw new Error('이미 등록된 유저');
             }
-                await this.tokenService.setJwtTokenInCookie(ctx, loginReq.username);
-                await client.query('COMMIT');
-                ctx.body = { success: true, message: '유저 등록 성공' };
+            const hashedPassword = await bcrypt.hash(registReq.password, 10);
+            const registrationParams = {
+                username: registReq.username,
+                password: hashedPassword,
+            };
+            const registeredUser = await this.userService.createAccount(client, registrationParams);
 
+        if (registeredUser) {
+            await this.tokenService.setJwtTokenInCookie(ctx, registReq.username);
+            await client.query('COMMIT');
+            ctx.body = { success: true, message: '유저 등록 성공' };
+        } else {
+            ctx.body = { success: false, message: '유저 등록 실패' };
+            throw new Error('유저 등록 실패');
+        }
         } catch (error) {
             await client.query('ROLLBACK');
             console.error("Error during register:", error);
@@ -110,7 +121,7 @@ export default class Users {
             const user = await this.userService.getUserByUserKakaoId(id);
             let createAccountResult;
             if (user === null) {
-                const { ok: user } = await this.userService.createKakaoAccount({
+                const { ok: user } = await this.userService.createKakaoAccount(client,{
                     username,
                     id,
                     profileImg
