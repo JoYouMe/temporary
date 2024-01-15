@@ -13,44 +13,44 @@
       Kakao.init('37c849dca87bb337a49024603ee61d63');
       console.log(Kakao.isInitialized());
 
-      // function kakaoLogin() {
-      //   Kakao.Auth.login({
-      //     success: function (response) {
-      //       Kakao.API.request({
-      //         url: '/v2/user/me',
-      //         success: function (res) {
-      //           console.log(response);
-      //           const id = res.id;
-      //           const profileImg = res.properties.profile_image;
-      //           const name = res.properties.nickname;
-      //           alert(`Login successful! ID: ${id} Name: ${name}`);
-      //         },
-      //         fail: function (error) {
-      //           console.log(error);
-      //         },
-      //       });
-      //     },
-      //     fail: function (error) {
-      //       console.log(error);
-      //     },
-      //   });
-      // }
+      function kakaoLogin() {
+        Kakao.Auth.login({
+          success: function (response) {
+            Kakao.API.request({
+              url: '/v2/user/me',
+              success: function (res) {
+                console.log(response);
+                const id = res.id;
+                const profileImg = res.properties.profile_image;
+                const name = res.properties.nickname;
+                alert(`Login successful! ID: ${id} Name: ${name}`);
+              },
+              fail: function (error) {
+                console.log(error);
+              },
+            });
+          },
+          fail: function (error) {
+            console.log(error);
+          },
+        });
+      }
 
-      // function kakaoLogout() {
-      //   if (Kakao.Auth.getAccessToken()) {
-      //     Kakao.API.request({
-      //       url: '/v1/user/unlink',
-      //       success: function (response) {
-      //         console.log(response);
-      //         alert('Logout successful!');
-      //       },
-      //       fail: function (error) {
-      //         console.log(error);
-      //       },
-      //     });
-      //     Kakao.Auth.setAccessToken(undefined);
-      //   }
-      // }
+      function kakaoLogout() {
+        if (Kakao.Auth.getAccessToken()) {
+          Kakao.API.request({
+            url: '/v1/user/unlink',
+            success: function (response) {
+              console.log(response);
+              alert('Logout successful!');
+            },
+            fail: function (error) {
+              console.log(error);
+            },
+          });
+          Kakao.Auth.setAccessToken(undefined);
+        }
+      }
     </script>
     <a href="/user/oauth/kakao"
       ><img
